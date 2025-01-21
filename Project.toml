@@ -3,6 +3,11 @@ uuid = "de6df24e-a306-4916-96f6-3ab6c7568c2f"
 authors = ["Tan Kian-ting <chenjt30@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+ParserCombinator = "fae87a5f-d1ad-5cf0-8f61-c941e1580b46"
+libharu_jll = "d4e8948d-4b7e-5538-9d15-404f6f0a9070"
+
 [compat]
 julia = "1.6.7"
 
