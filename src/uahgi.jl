@@ -1,5 +1,5 @@
 module uahgi
-include("./parsing.jl")
+include("parsing.jl")
 using .Parsing
 using ArgParse
 
@@ -12,7 +12,7 @@ function parse_commandline()
     @add_arg_table! s begin
         "FILE"
             help = "the file path to be converted."
-            required = true
+            #required = true
     end
 
     return parse_args(s)
@@ -21,7 +21,11 @@ end
 
 function main()
     parsed_args = parse_commandline()
-    file_path = parsed_args["FILE"]
+    if parsed_args["FILE"] === nothing
+        file_path = "./example/ex1.ug" # for test
+    else
+        file_path = parsed_args["FILE"]
+    end
     file_content = open(f->read(f, String), file_path)
     Parsing.parse(file_content)
 end
