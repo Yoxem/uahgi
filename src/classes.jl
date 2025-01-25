@@ -9,5 +9,5 @@ struct SPACE<:Node val end # space
 struct NL<:Node val end # newline
 struct PROG<:Node val end # all the program
 # pattern in regex form
-struct PTN_RGX<:Node val::Regex end
+#struct PTN_RGX<:Node val::Regex end
 end

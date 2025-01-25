@@ -12,7 +12,7 @@ function parse_commandline()
     @add_arg_table! s begin
         "FILE"
             help = "the file path to be converted."
-            #required = true
+            required = true
     end
 
     return parse_args(s)
@@ -21,11 +21,13 @@ end
 
 function main()
     parsed_args = parse_commandline()
-    if parsed_args["FILE"] === nothing
-        file_path = "./example/ex1.ug" # for test
-    else
-        file_path = parsed_args["FILE"]
-    end
+    file_path = parsed_args["FILE"]
+    # for test
+    #if parsed_args["FILE"] === nothing
+    #    file_path = "./example/ex1.ug"
+    #else
+    #    file_path = parsed_args["FILE"]
+    #end
     file_content = open(f->read(f, String), file_path)
     Parsing.parse(file_content)
 end

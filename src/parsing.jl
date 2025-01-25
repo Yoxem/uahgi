@@ -16,7 +16,7 @@ space = p"[ \t]" > Passes.Classes.SPACE
 id_name = p"[_a-zA-Z][_0-9a-zA-Z]*" > Passes.Classes.ID
 id = E"@" + id_name
 
-char = p"[^ \n\r\t\\]" |> Passes.Classes.CHAR #[1:2,:?]
+char = p"[^ \n\r\t\\]" > Passes.Classes.CHAR #[1:2,:?]
 
 # chars should be preceded by "\" are \, {, }, |, @, %
 esc_char = p"[\{\|\}\@\%]" > Passes.Classes.ESC_CHAR
@@ -67,9 +67,11 @@ end
 function match_unit(pair)
     pattern = pair[1]
     ast_item = pair[2]
-
-    if typeof(pattern) == Passes.Classes.PTN_RGX
-        is_matched = match(pattern.val, ast_item.val)
+    #println(pattern, "~~~", ast_item)
+    if typeof(pattern) != typeof(ast_item)
+        return false
+    elseif typeof(pattern.val) == Regex
+        is_matched = occursin(pattern.val, ast_item.val)
         return is_matched
     else
         return pattern.val == ast_item.val
@@ -86,9 +88,13 @@ function use_pass(ast_val, pass)
 
         if ast_pattern_matched(pass_pattern, ast_head)          
             ast_head = pass.func(ast_head)
-            remained = use_pass([ast_head[2:end];ast_val[pass_pattern_length+1:end]], pass)
+            raw_remained = [ast_head[2:end];ast_val[pass_pattern_length+1:end]]
+            remained = use_pass(raw_remained, pass)
             ast_val = [ast_head[1]; remained]
         else
+            raw_remained = ast_val[2:end]
+            remained = use_pass(raw_remained, pass)
+            ast_val = [ast_head[1]; remained]
             return ast_val
         end
     end
