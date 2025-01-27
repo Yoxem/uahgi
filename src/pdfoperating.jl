@@ -68,7 +68,7 @@ function put_text(page, text, font, size, x, y)
     
     #declare putting text
     @ccall libhpdf.HPDF_Page_BeginText(
-        page::Ptr{Cvoid})::Ptr{Cvoid}; #宣告加入文字
+        page::Ptr{Cvoid})::Ptr{Cvoid}
     
     # put the text on
     @ccall libhpdf.HPDF_Page_TextOut(
@@ -79,7 +79,7 @@ function put_text(page, text, font, size, x, y)
     
     # end of putting text
     @ccall libhpdf.HPDF_Page_EndText(
-        page::Ptr{Cvoid})::Ptr{Cvoid}; #宣告完成加入文字
+        page::Ptr{Cvoid})::Ptr{Cvoid}
     
 end
 
