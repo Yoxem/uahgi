@@ -138,7 +138,7 @@ function hyphenate(ast)
             end
         end
 
-        println("New AST Val=====", new_ast_val3)
+        println(new_ast_val3)
 
         return c.PROG(new_ast_val3)
     else
