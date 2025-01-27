@@ -3,7 +3,9 @@ using ParserCombinator
 using Match
 
 include("passes.jl")
+include("hyphenating.jl")
 using .Passes
+using .Hyphenating
 
 #=
 grammar rules of uahgi
@@ -16,7 +18,10 @@ space = p"[ \t]" > Passes.Classes.SPACE
 id_name = p"[_a-zA-Z][_0-9a-zA-Z]*" > Passes.Classes.ID
 id = E"@" + id_name
 
-char = p"[^ \n\r\t\\]" > Passes.Classes.CHAR #[1:2,:?]
+empty_char = P"" # empty char
+
+#make alphabet series a group for hyphenating
+char = p"([a-zA-Z]+|[^ a-zA-Z\n\r\t\\])" > Passes.Classes.CHAR #[1:2,:?]
 
 # chars should be preceded by "\" are \, {, }, |, @, %
 esc_char = p"[\{\|\}\@\%]" > Passes.Classes.ESC_CHAR
@@ -26,7 +31,7 @@ seq = (foo x1 x2 " ")
 => {@foo|x1|x2| }
 =#
 char_and_combined = char | esc_combined
-seq_item = id | Repeat(char_and_combined) |> Passes.Classes.ELE
+seq_item = id | Repeat(char_and_combined) | empty_char |> Passes.Classes.ELE
 seq_item_rest = E"|" + seq_item
 seq_inner = seq_item + (seq_item_rest)[0:end] |> Passes.Classes.SEQ
 seq = E"{" + seq_inner + E"}"
@@ -42,6 +47,8 @@ function parse(input)
     
     
     #print(parse_one(, Pattern(r".b.")))
+
+    ast = Hyphenating.hyphenate(ast)
     
     passes = Passes.processed_passes
 
@@ -112,6 +119,7 @@ function ast_to_string(ast)
                     return "(" * prog_inner * ")"
                 end
         Passes.Classes.ID(v) => "[ID: " * v * "]"
+        Passes.Classes.ELE([]) => return "[ELE : ()]"
         Passes.Classes.ELE(v) => begin
             prog_inner = reduce( (x, y) -> x*" "*y, map(i -> ast_to_string(i), v))
             return "[ELE : (" * prog_inner * ")]"

@@ -8,9 +8,9 @@ using TeX-like metrics, in px
  - weight
  - depth
 """
-struct FontMetrics
+struct CharMetrics
     height::Float64
-    weight::Float64
+    width::Float64
     depth::Float64    
 end
 
@@ -110,6 +110,8 @@ function check_char_size(char, font_path, font_size, font_index=0)
     println("width ", width, "px")
     println("height ", height, "px")
     println("depth ", depth, "px")
+
+    return CharMetrics(height, width, depth)
 end
 
 """
