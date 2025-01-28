@@ -7,6 +7,8 @@ include("hyphenating.jl")
 using .Passes
 using .Hyphenating
 
+
+
 #=
 grammar rules of uahgi
 =#
@@ -21,7 +23,7 @@ id = E"@" + id_name
 empty_char = P"" # empty char
 
 #make alphabet series a group for hyphenating
-char = p"([a-zA-Z]+|[^ a-zA-Z\n\r\t\\])" > Passes.Classes.CHAR #[1:2,:?]
+char = p"([a-zA-Z]+|[^ \|\{\}\@\%a-zA-Z\n\r\t\\])" > Passes.Classes.CHAR #[1:2,:?]
 
 # chars should be preceded by "\" are \, {, }, |, @, %
 esc_char = p"[\{\|\}\@\%]" > Passes.Classes.ESC_CHAR
@@ -30,11 +32,13 @@ esc_combined = E"\\" + esc_char
 seq = (foo x1 x2 " ")
 => {@foo|x1|x2| }
 =#
-char_and_combined = char | esc_combined
-seq_item = id | Repeat(char_and_combined) | empty_char |> Passes.Classes.ELE
+seq = Delayed() # recursively used later.
+char_and_combined = char | esc_combined | space | newline
+seq_atom_item = id | Repeat(char_and_combined) | empty_char |> Passes.Classes.ELE
+seq_item = seq | seq_atom_item
 seq_item_rest = E"|" + seq_item
 seq_inner = seq_item + (seq_item_rest)[0:end] |> Passes.Classes.SEQ
-seq = E"{" + seq_inner + E"}"
+seq.matcher = E"{" + seq_inner + E"}"
 
 
 part =  seq | comment | space | newline | id | char
@@ -60,7 +64,7 @@ function parse(input)
 
     new_ast = Passes.Classes.PROG(ast_val)
     print(ast_to_string(new_ast))
-    return ast
+    return new_ast
 end
 
 
@@ -93,7 +97,7 @@ function use_pass(ast_val, pass)
     else
         ast_head = ast_val[1:pass_pattern_length]
 
-        if ast_pattern_matched(pass_pattern, ast_head)          
+        if ast_pattern_matched(pass_pattern, ast_head) 
             ast_head = pass.func(ast_head)
             raw_remained = [ast_head[2:end];ast_val[pass_pattern_length+1:end]]
             remained = use_pass(raw_remained, pass)
@@ -125,7 +129,7 @@ function ast_to_string(ast)
             return "[ELE : (" * prog_inner * ")]"
             end
         Passes.Classes.ESC_CHAR(ch) => "[ESC:\"" * ch[1] * "\"]"
-        Passes.Classes.CHAR(ch) => "\"" * ch[1] *  "\""
+        Passes.Classes.CHAR(ch) => "\"" * ch *  "\""
         Passes.Classes.NL(_) => "NL"
         Passes.Classes.SPACE(_) => "SPACE"
 

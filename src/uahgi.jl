@@ -1,7 +1,59 @@
 module uahgi
 include("parsing.jl")
+include("interp.jl")
+using .Interp
 using .Parsing
 using ArgParse
+
+abstract type Box end
+"""
+Horizonal Box
+
+- eles = array in the Hbox
+- ht = height
+- dp = depth
+- wd = width
+"""
+mutable struct HBox<:Box
+    eles
+    ht
+    dp
+    wd
+end
+
+"""
+Vertical Box
+
+- eles = array in the Hbox
+- ht = height
+- dp = depth
+- wd = width
+"""
+mutable struct VBox<:Box
+    eles
+    ht
+    dp
+    wd
+end
+
+"""
+Character Box
+
+- char: character 
+- font_path: font path for the char
+- size: font sizein pt
+- ht = height
+- dp = depth
+- wd = width
+"""
+mutable struct ChBox<:Box
+    char
+    font_path
+    size
+    ht
+    dp
+    wd
+end
 
 function parse_commandline()
     #= please see:
@@ -29,7 +81,16 @@ function main()
     #    file_path = parsed_args["FILE"]
     #end
     file_content = open(f->read(f, String), file_path)
-    Parsing.parse(file_content)
+    ast = Parsing.parse(file_content)
+
+
+    default_env = Dict() # the default environment for the intepreter
+    output_box_orig = VBox([HBox([], nothing, nothing, nothing)],
+                          nothing, nothing, nothing)
+    output_box_result = Interp.interp_main(ast, default_env, output_box_orig)
+    print("Env", output_box_result[2])
+    print("OutPutBox", output_box_result[3])
+
 end
 
 main()

@@ -1,4 +1,8 @@
 {@lang|en}
+{@def|@font|{@quote|FreeSans|AR PL Kaiti M}}
+{@def|@fontsize|12}
 therapy of communication and pronounciation123%comment
 
-anotherline% processing
+anotherline%{@set|@fontsize|10} processing
+
+of the problem

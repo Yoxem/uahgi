@@ -41,7 +41,6 @@ end
 
 function hyphenate_aux(chars, patterns)
     level_of_chars = fill(0, length(chars))
-    println(level_of_chars)
 
     y = filter(x -> (match(Regex(x[1]), chars) !== nothing),patterns)
     z = map(x -> (x[1], x[2],
@@ -112,7 +111,6 @@ function hyphenate(ast)
         pattern_with_orig = map(x->(remove_num_from_pattern(x), x),
                                 patterns)
                                 
-        println("AST=====", ast)
         new_ast_val = map(x -> match_char(x, pattern_with_orig), ast.val)
         
         
@@ -137,9 +135,6 @@ function hyphenate(ast)
                 _ => push!(new_ast_val3, i)
             end
         end
-
-        println(new_ast_val3)
-
         return c.PROG(new_ast_val3)
     else
         return ast
