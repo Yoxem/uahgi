@@ -16,7 +16,8 @@ interp: the intepreter of the uahgi.
 
 - ast: element or part of the ast
 - env: the variable storaging environment 
-- res_box: the generated result box containing the content
+- res_box: the generated result box containing the content\
+- put_char(bool. value): if the character should be put into the res_box
 """
 function interp(ast, env, res_box, put_char=true)
     #println("INTERP", ast)
