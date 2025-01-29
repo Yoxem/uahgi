@@ -8,6 +8,12 @@ using .PDFOperating
 u = Main.uahgi
 c = Main.uahgi.Parsing.Passes.Classes
 
+@enum PutChar begin
+    true_ = 0
+    false_ = 1
+    gen_chbox_ = 2
+end
+
 function interp_main(ast, env, res_box)
     ast_inner = ast.val
     val = nothing
@@ -22,19 +28,35 @@ interp: the intepreter of the uahgi.
 - ast: element or part of the ast
 - env: the variable storaging environment 
 - res_box: the generated result box containing the content\
-- put_char(bool. value): if the character should be put into the res_box
+- put_char(PutChar): if the character should be put into the res_box. 
 """
-function interp(ast, env, res_box, put_char=true)
+function interp(ast, env, res_box, put_char=true_)
     #println("INTERP", ast)
     @match ast begin
         c.SEQ([c.ELE([c.ID("def")]),
             c.ELE([c.ID(id)]),val]) => 
                         begin
-                            (val_evaled, env, res_box) = interp(val, env, res_box, false)
+                            (val_evaled, env, res_box) = interp(val, env, res_box, false_)
                             #println("ID~~~", id, " VAL~~~", val_evaled)
-                            env[id] = val_evaled
+                            if !haskey(env, id)
+                                env[id] = val_evaled
+                            else
+                                throw("the variable $id has been defined.")
+                            end
                             return (val_evaled, env, res_box)
                         end
+        c.SEQ([c.ELE([c.ID("set")]),
+            c.ELE([c.ID(id)]),val]) => 
+                    begin
+                        (val_evaled, env, res_box) = interp(val, env, res_box, false_)
+                        #println("ID~~~", id, " VAL~~~", val_evaled)
+                        if haskey(env, id)
+                            env[id] = val_evaled
+                        else
+                            throw("the variable $id is not defined yet.")
+                        end
+                        return (val_evaled, env, res_box)
+                                    end
         c.SEQ([c.ELE([c.ID("quote")]),
             y...]) =>   begin
                             list = map(x -> x[1],
@@ -45,49 +67,107 @@ function interp(ast, env, res_box, put_char=true)
         
         c.ELE([v...]) =>   begin
                             ele = reduce( (x, y) -> x*""*y,
-                                map(i -> interp(i, env, res_box, false)[1], v))
+                                map(i -> interp(i, env, res_box, false_)[1], v))
                             return (ele, env, res_box)
             
                         end
+        c.SEQ([c.ELE([c.ID("par")])]) =>begin
+                                            push!(res_box.eles, u.HBox([],
+                                             nothing, nothing, nothing, nothing, nothing))
+                                            return (ast, env, res_box)
+                                        end
+        c.SEQ([c.ELE([c.ID("ex")]), val]) =>begin
+                                        x = 'x'
+                                        font_family = select_font(x, env)
+                                        font_path = get_font_path(font_family)
+                                        font_size = parse(Int, env["fontsize"])
+                                        charmetrics = PDFOperating.check_char_size(
+                                            'x',
+                                            font_path,
+                                            font_size)
+                                        ex_in_px = charmetrics.wd
+                                        (val, _, _) = interp(val, env, res_box, false_)
+                                        val_ex_in_px = ex_in_px * parse(Int,val)
+                                        return (val_ex_in_px, env, res_box)
+                                    end
+        c.SEQ([c.ELE([c.ID("hglue")]),
+            width,stretch]) => begin
+                                    if put_char == true_
+                                        (width_evaled, _, _) = interp(width, env, res_box, false_)
+                                        (stretch_evaled, _, _) = interp(stretch, env, res_box, false_)
+                                        push!(res_box.eles[end].eles,
+                                            u.HGlue(width_evaled, parse(Int, stretch_evaled))
+                                        )
+                                    end
+
+                                    return (ast, env, res_box)
+                                end
+
         c.CHAR(ch) => begin
                         atomic_ch = ch[1]
-                        
-                        if put_char == true
 
-                            font_idx = 1
-                            font_family = string(env["font"][font_idx])
-                            font_family_length = length(font_family)
-                            while !is_in_font(atomic_ch, font_family)
-                                if font_idx <= font_family_length
-                                    font_idx += 1
-                                    font_family = string(env["font"][font_idx])
-                                else
-                                    font_list = string(env["font"])
-                                    throw("the chars $atomic_ch is not contained in all the fonts
-                                        listed in listed fonts: $font_list")
-                                end
-                            end
-
-
-                            font_path = get_font_path(font_family)
-                            font_size = parse(Int, env["fontsize"])
-                            glyph_metrics = PDFOperating.check_char_size(
-                                                atomic_ch, font_path, font_size)
-
-
-                            push!(res_box.eles[end].eles,
-                                u.ChBox(ch,
-                                    font_path,
-                                    font_size,
-                                    glyph_metrics.ht,
-                                    glyph_metrics.dp,
-                                    glyph_metrics.wd))
-                        end
+                        if put_char == false_
                             return (ch, env, res_box)
-                    end
-        c.NL(nl) => return (nl, env, res_box)
-        c.SPACE(sp) => return (sp, env, res_box)
+                        end
 
+                        font_family = select_font(atomic_ch, env)
+
+                        font_path = get_font_path(font_family)
+                        font_size = parse(Int, env["fontsize"])
+                        glyph_metrics = PDFOperating.check_char_size(
+                                            atomic_ch, font_path, font_size)
+                        chbox = u.ChBox(ch,
+                            font_path,
+                            font_size,
+                            glyph_metrics.ht,
+                            glyph_metrics.dp,
+                            glyph_metrics.wd,
+                            nothing, nothing)
+                        
+                        if put_char == true_
+                            push!(res_box.eles[end].eles, chbox)
+                            return (ch, env, res_box)
+                        else # put_char == gen_chbox_
+                            return (chbox, env, res_box)
+                        
+                        end
+                    end
+
+        c.SEQ([c.ELE([c.ID("disc")]),
+                c.ELE(before),
+                c.ELE(after),
+                c.ELE(orig)])=> begin
+                before_item = length(before) == 0 ? [] : before[1]
+                after_item = length(after) == 0 ? [] : after[1]
+                orig_item = length(orig) == 0 ? [] : orig[1]
+
+                (before_evaled, _, _) = interp(before_item, env, res_box, gen_chbox_)
+                (after_evaled, _, _) = interp(after_item, env, res_box, gen_chbox_)
+                (orig_evaled, _, _) = interp(orig_item, env, res_box, gen_chbox_)
+                ret = u.Disc(before_evaled, after_evaled, orig_evaled)
+                println("RETURN", ret)
+                push!(res_box.eles[end].eles, ret)
+                return (ret, env, res_box)
+            
+            end
+        c.NL(nl) => begin
+                        #if spacing defined
+                        if haskey(env, "spacing")
+                            (spacing, _, _) = interp(env["spacing"], env, res_box, false_)
+                            add_spacing = interp(spacing, env, res_box, true_)
+                        end
+                        return (nl, env, res_box)
+                    end
+        c.SPACE(sp) => begin
+                            #if spacing defined
+                            if haskey(env, "spacing")
+                                (spacing, _, _) = interp(env["spacing"], env, res_box, false_)
+                                add_spacing = interp(spacing, env, res_box, true_)
+                            end
+                            return (sp, env, res_box)
+                        end
+        # empty item
+        [] => return (ast, env, res_box)
         _ => begin
               println("不知道")
               val_evaled = "不知道"
@@ -144,6 +224,24 @@ function padding_zero(i)
     return i
 end
 
-
+"""
+Select proper font having the glyph of char `ch`
+"""
+function select_font(ch, env)
+    font_idx = 1
+    font_family = string(env["font"][font_idx])
+    font_family_length = length(font_family)
+    while !is_in_font(ch, font_family)
+        if font_idx <= font_family_length
+            font_idx += 1
+            font_family = string(env["font"][font_idx])
+        else
+            font_list = string(env["font"])
+            throw("the chars $atomic_ch is not contained in all the fonts
+                listed in listed fonts: $font_list")
+        end
+    end
+    return font_family
+end
 
 end

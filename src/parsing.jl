@@ -15,7 +15,7 @@ grammar rules of uahgi
 
 comment = P"\%[^%]+\%"
 newline = P"(\r?\n)" |> Passes.Classes.NL
-space = p"[ \t]" > Passes.Classes.SPACE
+space = p"[ \t]+" > Passes.Classes.SPACE
 
 id_name = p"[_a-zA-Z][_0-9a-zA-Z]*" > Passes.Classes.ID
 id = E"@" + id_name
@@ -138,11 +138,5 @@ function ast_to_string(ast)
     end
     return str
 end
-
-# Write your package code here.
-#export cat
-
-#cat = 1.2
-
 
 end

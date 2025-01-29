@@ -26,8 +26,7 @@ push!(processed_passes, two_nl_to_par_pass)
 
 # in 2 hanzi add glue.
 function insert_hglue_in_adjacent_chinese(two_nl)
-    _0pt = Classes.SEQ([Classes.ID("pt"); Classes.CHAR(["0"])])
-    inner = Classes.SEQ([Classes.ID("hglue"); _0pt])
+    inner = Classes.ID("cjk_spacing")
     return [two_nl[1]; inner; two_nl[2]]
 end
 adjacent_chinese_pattern = [Classes.CHAR(r"[\p{Han}，。！？：「」『』…]"),

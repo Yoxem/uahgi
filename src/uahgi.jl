@@ -1,11 +1,28 @@
 module uahgi
 include("parsing.jl")
 include("interp.jl")
+include("arrange.jl")
+
 using .Interp
 using .Parsing
+using .Arrange
 using ArgParse
 
+export ChBox, HGlue
 abstract type Box end
+
+"""
+a like-breakable discrete point.
+- before: the item before likebreaking
+- after: the item after linebreaking
+- orig: the status while not triggering like breaking
+"""
+mutable struct Disc<:Box
+    before
+    after
+    orig
+end
+
 """
 Horizonal Box
 
@@ -19,7 +36,20 @@ mutable struct HBox<:Box
     ht
     dp
     wd
+    x
+    y
 end
+
+"""
+Horizonal Glue (HGlue)
+- wd: width
+- str : stretch
+"""
+mutable struct HGlue<:Box
+    wd
+    str
+end
+
 
 """
 Vertical Box
@@ -34,6 +64,8 @@ mutable struct VBox<:Box
     ht
     dp
     wd
+    x
+    y
 end
 
 """
@@ -53,6 +85,8 @@ mutable struct ChBox<:Box
     ht
     dp
     wd
+    x
+    y
 end
 
 function parse_commandline()
@@ -64,7 +98,7 @@ function parse_commandline()
     @add_arg_table! s begin
         "FILE"
             help = "the file path to be converted."
-            required = true
+            required = false
     end
 
     return parse_args(s)
@@ -74,6 +108,18 @@ end
 function main()
     parsed_args = parse_commandline()
     file_path = parsed_args["FILE"]
+    if file_path === nothing
+    #help string
+    help = "usage: uahgi.jl [-h] [FILE]
+
+    positional arguments:
+      FILE        the file path to be converted.
+    
+    optional arguments:
+      -h, --help  show this help message and exit"
+        println(help)
+        return 0
+    end
     # for test
     #if parsed_args["FILE"] === nothing
     #    file_path = "./example/ex1.ug"
@@ -85,11 +131,16 @@ function main()
 
 
     default_env = Dict() # the default environment for the intepreter
-    output_box_orig = VBox([HBox([], nothing, nothing, nothing)],
-                          nothing, nothing, nothing)
+    output_box_orig = VBox([HBox([], nothing, nothing, nothing, nothing, nothing)],
+                          nothing, nothing, nothing, nothing, nothing)
     output_box_result = Interp.interp_main(ast, default_env, output_box_orig)
-    print("Env", output_box_result[2])
-    print("OutPutBox", output_box_result[3])
+    env = output_box_result[2]
+    output_box =  output_box_result[3]
+    print(output_box)
+    #TODO
+    arranged = Arrange.arrange(output_box, env)
+
+
 
 end
 
