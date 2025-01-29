@@ -9,14 +9,14 @@ using TeX-like metrics, in px
  - depth
 """
 struct CharMetrics
-    height::Float64
-    width::Float64
-    depth::Float64    
+    ht::Float64
+    dp::Float64  
+    wd::Float64  
 end
 
 #the default path is Noto Serif CJK Regular
-default_font_path = "src/thirdParty/fonts/noto/NotoSerifTC-Regular.ttf"
-#default_font_path = "src/thirdParty/fonts/linuxLibertine/LinLibertine_Rah.ttf"
+#default_font_path = "src/thirdParty/fonts/noto/NotoSerifTC-Regular.ttf"
+default_font_path = "src/thirdParty/fonts/linuxLibertine/LinLibertine_Rah.ttf"
 
 function createPDF()
     #=returns pdf=#
@@ -93,7 +93,7 @@ function check_char_size(char, font_path, font_size, font_index=0)
     library = Vector{FT_Library}(undef, 1)
     error = FT_Init_FreeType(library)
     face = Ref{FT_Face}()
-    FT_New_Face(library[1], font_path, font_index, face);
+    FT_New_Face(library[1], string(font_path), 0, face)
     glyph_index = FT_Get_Char_Index(face[], char)
     FT_Load_Glyph(face[], glyph_index, FT_LOAD_NO_SCALE)
     faceRec = unsafe_load(face[])
@@ -107,11 +107,8 @@ function check_char_size(char, font_path, font_size, font_index=0)
     #from baseline down to the bottom of the glyph
     depth = metricToPx(metrics.height - metrics.horiBearingY, font_size)
 
-    println("width ", width, "px")
-    println("height ", height, "px")
-    println("depth ", depth, "px")
 
-    return CharMetrics(height, width, depth)
+    return CharMetrics(height, depth, width)
 end
 
 """
@@ -121,18 +118,18 @@ function metricToPx(metric, size_pt)
     return metric * size_pt / 750
 end
 
-pdf = createPDF()
-page = addPage(pdf)
-font = load_font(pdf, default_font_path)
-put_text(page, "上下abc", font, 15, 100, 200)
-put_text(page, "天地人", font, 15, 200, 200)
+#pdf = createPDF()
+#page = addPage(pdf)
+#font = load_font(pdf, default_font_path)
+#put_text(page, "上下abc", font, 15, 100, 200)
+#put_text(page, "天地人", font, 15, 200, 200)
 
-save_pdf(pdf, "text.pdf")
+#save_pdf(pdf, "text.pdf")
 
-println("PDF generated.")
-check_char_size(
-    'j',
-    default_font_path,
-    20)
+#println("PDF generated.")
+#check_char_size(
+#    '安',
+#    default_font_path,
+#    20)
 
 end
