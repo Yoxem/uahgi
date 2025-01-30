@@ -45,9 +45,7 @@ part =  seq | comment | space | newline | id | char
 all = (Repeat(part) + Eos()) |> Passes.Classes.PROG
 
 function parse(input)
-    print(input)
     ast = parse_one(input, all)[1]
-    print("\n" * string(ast) * "\n")
     
     
     #print(parse_one(, Pattern(r".b.")))
@@ -63,7 +61,6 @@ function parse(input)
     end
 
     new_ast = Passes.Classes.PROG(ast_val)
-    print(ast_to_string(new_ast))
     return new_ast
 end
 

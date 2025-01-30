@@ -89,9 +89,9 @@ function match_char(ast_item, patterns)
                 for i in splitted
                     push!(final, c.CHAR(i))
                     push!(final, c.SEQ([c.ELE([c.ID("disc")]),
+                                        c.ELE([c.CHAR("-")]),
                                         c.ELE([]),
-                                        c.ELE([]),
-                                        c.ELE([c.CHAR("-")])]))
+                                        c.ELE([])]))
                 end
 
                 final = final[1:end-1]

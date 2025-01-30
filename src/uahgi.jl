@@ -2,10 +2,12 @@ module uahgi
 include("parsing.jl")
 include("interp.jl")
 include("arrange.jl")
+include("pdfoperating.jl")
 
 using .Interp
 using .Parsing
 using .Arrange
+using .PDFOperating
 using ArgParse
 
 export ChBox, HGlue
@@ -136,12 +138,9 @@ function main()
     output_box_result = Interp.interp_main(ast, default_env, output_box_orig)
     env = output_box_result[2]
     output_box =  output_box_result[3]
-    print(output_box)
-    #TODO
     arranged = Arrange.arrange(output_box, env)
-
-
-
+    unit_positioned = Arrange.position(arranged, env)
+    generated_pdf = PDFOperating.generate_pdf(unit_positioned, file_path[1:end-3] * ".pdf")
 end
 
 main()

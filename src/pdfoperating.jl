@@ -101,11 +101,11 @@ function check_char_size(char, font_path, font_size, font_index=0)
 
     metrics = glyphrec.metrics
     # horizonal mode
-    width = metricToPx(metrics.horiAdvance, font_size)
+    width = metricToPx(metrics.horiAdvance, font_size) * 0.75
     #from baseline up to top of the glyph
-    height = metricToPx(metrics.horiBearingY, font_size)
+    height = metricToPx(metrics.horiBearingY, font_size) * 0.75
     #from baseline down to the bottom of the glyph
-    depth = metricToPx(metrics.height - metrics.horiBearingY, font_size)
+    depth = metricToPx(metrics.height - metrics.horiBearingY, font_size) * 0.75
 
 
     return CharMetrics(height, depth, width)
@@ -131,5 +131,15 @@ end
 #    '安',
 #    default_font_path,
 #    20)
+"""generate_pdf"""
+function generate_pdf(box_list, file_path)
+    pdf = createPDF()
+    page = addPage(pdf)
+    for ch in box_list
+        font = load_font(pdf, ch.font_path)
+        put_text(page, ch.char, font, ch.size, ch.x, ch.y)
+    end
+    save_pdf(pdf, file_path)
+end
 
 end

@@ -33,6 +33,11 @@ interp: the intepreter of the uahgi.
 function interp(ast, env, res_box, put_char=true_)
     #println("INTERP", ast)
     @match ast begin
+        c.ID(id) => 
+            begin
+                print("ID____", id)
+                return interp(env[id], env, res_box, true_)
+            end
         c.SEQ([c.ELE([c.ID("def")]),
             c.ELE([c.ID(id)]),val]) => 
                         begin
@@ -87,7 +92,7 @@ function interp(ast, env, res_box, put_char=true_)
                                             font_size)
                                         ex_in_px = charmetrics.wd
                                         (val, _, _) = interp(val, env, res_box, false_)
-                                        val_ex_in_px = ex_in_px * parse(Int,val)
+                                        val_ex_in_px = ex_in_px * parse(Float64,val)
                                         return (val_ex_in_px, env, res_box)
                                     end
         c.SEQ([c.ELE([c.ID("hglue")]),
@@ -96,7 +101,7 @@ function interp(ast, env, res_box, put_char=true_)
                                         (width_evaled, _, _) = interp(width, env, res_box, false_)
                                         (stretch_evaled, _, _) = interp(stretch, env, res_box, false_)
                                         push!(res_box.eles[end].eles,
-                                            u.HGlue(width_evaled, parse(Int, stretch_evaled))
+                                            u.HGlue(width_evaled, parse(Float64, stretch_evaled))
                                         )
                                     end
 
@@ -145,7 +150,6 @@ function interp(ast, env, res_box, put_char=true_)
                 (after_evaled, _, _) = interp(after_item, env, res_box, gen_chbox_)
                 (orig_evaled, _, _) = interp(orig_item, env, res_box, gen_chbox_)
                 ret = u.Disc(before_evaled, after_evaled, orig_evaled)
-                println("RETURN", ret)
                 push!(res_box.eles[end].eles, ret)
                 return (ret, env, res_box)
             
@@ -169,8 +173,8 @@ function interp(ast, env, res_box, put_char=true_)
         # empty item
         [] => return (ast, env, res_box)
         _ => begin
-              println("不知道")
-              val_evaled = "不知道"
+              println("unknown token", ast)
+              val_evaled = nothing
               return (val_evaled, env, res_box)
             end
     end
