@@ -35,9 +35,14 @@ function interp(ast, env, res_box, put_char=true_)
     @match ast begin
         c.ID(id) => 
             begin
-                print("ID____", id)
+                #print("ID____", id)
                 return interp(env[id], env, res_box, true_)
             end
+        c.SEQ([c.ID("par")]) => begin
+            par_box = u.Par()
+            push!(res_box.eles[end].eles, par_box)
+            return interp("", env, res_box)
+        end
         c.SEQ([c.ELE([c.ID("def")]),
             c.ELE([c.ID(id)]),val]) => 
                         begin
@@ -76,11 +81,7 @@ function interp(ast, env, res_box, put_char=true_)
                             return (ele, env, res_box)
             
                         end
-        c.SEQ([c.ELE([c.ID("par")])]) =>begin
-                                            push!(res_box.eles, u.HBox([],
-                                             nothing, nothing, nothing, nothing, nothing))
-                                            return (ast, env, res_box)
-                                        end
+
         c.SEQ([c.ELE([c.ID("ex")]), val]) =>begin
                                         x = 'x'
                                         font_family = select_font(x, env)
@@ -137,7 +138,6 @@ function interp(ast, env, res_box, put_char=true_)
                         
                         end
                     end
-
         c.SEQ([c.ELE([c.ID("disc")]),
                 c.ELE(before),
                 c.ELE(after),
@@ -172,8 +172,10 @@ function interp(ast, env, res_box, put_char=true_)
                         end
         # empty item
         [] => return (ast, env, res_box)
+        "" => return (ast, env, res_box)
+
         _ => begin
-              println("unknown token", ast)
+              println("unknown token: ", ast)
               val_evaled = nothing
               return (val_evaled, env, res_box)
             end

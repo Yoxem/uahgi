@@ -54,7 +54,13 @@ function total_cost(items, n, linewidth, last_of_queue=false)
         mininal_cost = +Inf
         prev_breakpoint = nothing
         for j in 1:1:(n-1)
-            tmp_cost = total_cost(items, j, linewidth, false) + cost(items, j+1, n, linewidth, last_of_queue)
+            total_c = total_cost(items, j, linewidth, false) 
+            cost_tail = cost(items, j+1, n, linewidth, last_of_queue)
+            if cost_tail < +Inf && last_of_queue == true
+                tmp_cost = total_c
+            else
+                tmp_cost = total_c + cost_tail
+            end
             if tmp_cost < mininal_cost
                 mininal_cost = tmp_cost
                 prev_breakpoint = j
@@ -98,7 +104,11 @@ function arrange(vbox, env)
     for (x, i) in enumerate(1:1:length(eles))
         item = eles[x]
         if !(x in breakpoint_list_reversed)
-            if typeof(item) == u.Disc
+            if typeof(item) == u.Par
+                horizonal_align = env["hori_align"]
+                result_vbox_inner[end].eles = add_aligner(result_vbox_inner[end].eles, horizonal_align)
+                push!(result_vbox_inner, u.HBox([],nothing,nothing,nothing,nothing,nothing))
+            elseif typeof(item) == u.Disc
                 if item.orig != []
                     push!(result_vbox_inner[end].eles, item.orig)
                 end
@@ -107,10 +117,15 @@ function arrange(vbox, env)
             end
         # x is the last one
         elseif i ==  length(eles)
-            push!(result_vbox_inner[end].eles, item)
+            if typeof(item) !== u.Par
+                push!(result_vbox_inner[end].eles, item)
+            end
         # x in breakpoint_list_reversed
         else
-            if typeof(item) == u.Disc
+            if typeof(item) == u.Par
+                push!(result_vbox_inner, u.HBox([],nothing,nothing,nothing,nothing,nothing))
+
+            elseif typeof(item) == u.Disc
                 if item.before != []
                     push!(result_vbox_inner[end].eles, item.before)
                 end
@@ -127,6 +142,17 @@ function arrange(vbox, env)
     return result_vbox_inner
 end
 
+function add_aligner(hbox_eles, horizonal_align)
+    aligner_glue = u.HGlue(0.0,10000.0)
+    if horizonal_align == "right"
+        hbox_eles = reverse(push!(reverse(hbox_eles), aligner_glue))
+    elseif horizonal_align == "middle"
+        return hbox_eles
+    else # left/default
+        hbox_eles = push!(hbox_eles, aligner_glue)
+    end
+    return hbox_eles
+end
 
 function position(box_inner, env#=to be used later=#)
     pages = [] #a subarray is the content of a page
@@ -135,19 +161,57 @@ function position(box_inner, env#=to be used later=#)
     posX = orig_x #cursor x
     posY = orig_y #cursor y
     baselineskip = 30  # it can be derived from env
-    for hbox in box_inner
-        pages = position_chbox(hbox.eles, pages, posX, posY)
+    linewidth = env["linewidth"]
+    horizonal_align = env["hori_align"]
+
+    for (idx, hbox) in enumerate(box_inner)
+        hbox_eles = hbox.eles
+        aligner_glue = u.HGlue(0.0,10000.0)
+        if idx == length(box_inner)
+            hbox_eles = add_aligner(hbox_eles, horizonal_align)
+        end
+        residual_space = parse(Float64, linewidth) - width_sum_of_eles(hbox.eles)
+        sum_of_stretch = reduce((x,y) -> x+y, map(hglue_stretch, hbox.eles))
+        space_stretch_ratio =  residual_space / sum_of_stretch
+
+        pages = position_chbox(hbox_eles, pages, posX, posY, space_stretch_ratio)
         posX = orig_x
         posY -= baselineskip
     end
     return pages
 end
 
+function hglue_stretch(ele)
+    if typeof(ele) == u.HGlue
+        return ele.stretch # stretch
+    else
+        return 0
+    end
+
+end
+
+function width_sum_of_eles(eles)
+    width_sum = x -> begin
+        if hasproperty(x, :wd)
+            return x.wd
+        else
+            return 0.0
+        end
+    end
+    if length(eles) == 0
+        return 0
+    elseif length(eles) == 1
+        return width_sum(eles[1])
+    else
+        return reduce((x,y)-> x+y, map(width_sum, eles))
+    end
+end
+
 """positioning all the chboxes in a HBox"""
-function position_chbox(hbox_eles, pages, posX, posY)
+function position_chbox(hbox_eles, pages, posX, posY, space_stretch_ratio)
     for i in hbox_eles
         if typeof(i) == u.HGlue
-            deltaX = i.wd
+            deltaX = i.wd + (i.stretch * space_stretch_ratio)
             posX += deltaX
         else #ChBox
             deltaX = i.wd 

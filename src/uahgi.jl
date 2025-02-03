@@ -44,14 +44,20 @@ end
 
 """
 Horizonal Glue (HGlue)
-- wd: width
-- str : stretch
+- wd : width
+- stretch : stretch
 """
 mutable struct HGlue<:Box
     wd
-    str
+    stretch
 end
 
+"""
+Par
+- for paragraph marker.
+"""
+mutable struct Par<:Box
+end
 
 """
 Vertical Box

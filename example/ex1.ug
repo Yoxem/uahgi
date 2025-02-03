@@ -1,8 +1,12 @@
-{@lang|en}%
+{@def|@lang|en}%
 %{@def|@font|{@quote|FreeSans|AR PL UKai TW}}%
 %{@def|@fontsize|12}%
-%{@def|@linewidth|200} %in px
-%{@def|@spacing|{@hglue|{@ex|1}|2}}%
-%{@def|@cjk_spacing|{@hglue|{@ex|0}|0.001}}%
+%{@def|@linewidth|400} %in px
+%{@def|@hori_align|left} % left| right|center
+%{@def|@spacing|{@hglue|{@ex|0.4}|0.2}}%
+%{@def|@cjk_lat_spacing|{@hglue|{@ex|0.2}|0.2}}%
+%{@def|@cjk_spacing|{@hglue|{@ex|0}|0.2}}%
 %the processing of typesetting technology is so sophisticated that many people are afraid of
-the implementation of typesetting language. However, it is good to give TEXBook a try.測試一段漢字，究竟漢字會不會斷行呢
+the implementation of typesetting language.{@set|@fontsize|14} However, it is good to give TEXBook a try. 測試一段漢字，究竟會不會斷行呢？「『《臺灣連翹》是吳濁流的著作，涉及臺灣戰後歷史與政治。』」{@set|@font|{@quote|jf open 粉圓 2.0|AR PL UMing TW}}
+
+願主耶穌ê恩典kap眾聖徒saⁿ-kap tī-leh。À-bēng。（啟示錄bóe-á-cha̍t）原起頭上帝創造天kap地，是創世記頭chi̍t cha̍t。

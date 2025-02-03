@@ -7,7 +7,7 @@ c = Main.uahgi.Parsing.Passes.Classes
 
 function match_lang(item)
     @match item begin
-    c.SEQ([c.ELE([c.ID("lang")]), c.ELE([c.CHAR(v1)])]) => begin
+    c.SEQ([c.ELE([c.ID("def")]),c.ELE([c.ID("lang")]), c.ELE([c.CHAR(v1)])]) => begin
         return v1
         end
     _ => false
