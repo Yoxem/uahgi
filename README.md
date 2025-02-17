@@ -21,7 +21,7 @@ julia --project="." src/uahgi.jl example/ex1.ug
 ```
 
 ## Origin of the name
-The name is after the Taiwanese/Hokkien word for the movable type, which is ua̍h-gī (活字), in Taichung-Basin accent.
+The name is after the Taiwanese/Hokkien word for the movable type, which is "ua̍h-gī" ([活字](https://en.wiktionary.org/wiki/%E6%B4%BB%E5%AD%97)), in Taichung-Basin accent.
 
 ## Test Result
 ![Example of the syntax](https://github.com/user-attachments/assets/9945139a-0a31-4c61-adc1-c24c6b57abac)
